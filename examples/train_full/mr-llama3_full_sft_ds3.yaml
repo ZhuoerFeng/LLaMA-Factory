@@ -1,0 +1,40 @@
+### model
+model_name_or_path: /workspace/checkpoints/llama-3-hf/Meta-Llama-3-8B-Instruct
+
+### method
+stage: sft
+do_train: true
+finetuning_type: full
+deepspeed: examples/deepspeed/ds_z2_config.json
+
+### dataset
+dataset: mr-train
+template: llama3
+cutoff_len: 5000
+max_samples: 300000
+overwrite_cache: true
+preprocessing_num_workers: 16
+shuffle: False
+
+### output
+output_dir: /workspace/outputs/manager-llama3-0716
+logging_steps: 10
+save_steps: 4000
+plot_loss: true
+overwrite_output_dir: true
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 2
+learning_rate: 5.0e-5
+num_train_epochs: 6.0
+lr_scheduler_type: linear
+warmup_ratio: 0.1
+bf16: true
+ddp_timeout: 180000000
+
+### eval
+val_size: 0.1
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 500

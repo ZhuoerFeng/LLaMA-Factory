@@ -143,6 +143,9 @@ def load_model(
         init_kwargs["config"] = config
         init_kwargs["pretrained_model_name_or_path"] = model_args.model_name_or_path
 
+        if getattr(config, "model_type", None) == "chatglm":
+            init_kwargs["empty_init"] = False
+        
         if model_args.mixture_of_depths == "load":
             model = load_mod_pretrained_model(**init_kwargs)
         elif model_args.visual_inputs:
