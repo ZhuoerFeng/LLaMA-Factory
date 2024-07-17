@@ -1,4 +1,20 @@
 {
+  "mr-train": {
+    "file_name": "/data/zhuoer/MR-train/train-lmfac.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response":"output"
+    }
+  },
+  "mr-val": {
+    "file_name": "/data/zhuoer/MR-train/val-lmfac.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response":"output"
+    }
+  },
   "identity": {
     "file_name": "identity.json"
   },
