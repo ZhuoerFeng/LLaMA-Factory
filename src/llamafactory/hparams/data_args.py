@@ -47,7 +47,11 @@ class DataArguments:
     )
     train_on_prompt: bool = field(
         default=False,
-        metadata={"help": "Whether to disable the mask on the prompt or not."},
+        metadata={"help": "Whether or not to disable the mask on the prompt."},
+    )
+    mask_history: bool = field(
+        default=False,
+        metadata={"help": "Whether or not to mask the history and train on the last turn only."},
     )
     streaming: bool = field(
         default=False,
@@ -137,3 +141,6 @@ class DataArguments:
 
         if self.streaming and self.max_samples is not None:
             raise ValueError("`max_samples` is incompatible with `streaming`.")
+
+        if self.mask_history and self.train_on_prompt:
+            raise ValueError("`mask_history` is incompatible with `train_on_prompt`.")

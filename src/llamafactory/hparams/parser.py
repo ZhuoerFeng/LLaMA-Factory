@@ -128,6 +128,9 @@ def _check_extra_dependencies(
     if finetuning_args.use_badam:
         require_version("badam>=1.2.1", "To fix: pip install badam>=1.2.1")
 
+    if finetuning_args.use_adam_mini:
+        require_version("adam-mini", "To fix: pip install adam-mini")
+
     if finetuning_args.plot_loss:
         require_version("matplotlib", "To fix: pip install matplotlib")
 
@@ -163,11 +166,15 @@ def get_train_args(args: Optional[Dict[str, Any]] = None) -> _TRAIN_CLS:
     if finetuning_args.stage != "pt" and data_args.template is None:
         raise ValueError("Please specify which `template` to use.")
 
-    if finetuning_args.stage != "sft" and training_args.predict_with_generate:
-        raise ValueError("`predict_with_generate` cannot be set as True except SFT.")
+    if finetuning_args.stage != "sft":
+        if training_args.predict_with_generate:
+            raise ValueError("`predict_with_generate` cannot be set as True except SFT.")
 
-    if finetuning_args.stage != "sft" and data_args.neat_packing:
-        raise ValueError("`neat_packing` cannot be set as True except SFT.")
+        if data_args.neat_packing:
+            raise ValueError("`neat_packing` cannot be set as True except SFT.")
+
+        if data_args.train_on_prompt or data_args.mask_history:
+            raise ValueError("`train_on_prompt` or `mask_history` cannot be set as True except SFT.")
 
     if finetuning_args.stage == "sft" and training_args.do_predict and not training_args.predict_with_generate:
         raise ValueError("Please enable `predict_with_generate` to save model predictions.")
@@ -175,21 +182,18 @@ def get_train_args(args: Optional[Dict[str, Any]] = None) -> _TRAIN_CLS:
     if finetuning_args.stage in ["rm", "ppo"] and training_args.load_best_model_at_end:
         raise ValueError("RM and PPO stages do not support `load_best_model_at_end`.")
 
-    if finetuning_args.stage == "ppo" and not training_args.do_train:
-        raise ValueError("PPO training does not support evaluation, use the SFT stage to evaluate models.")
+    if finetuning_args.stage == "ppo":
+        if not training_args.do_train:
+            raise ValueError("PPO training does not support evaluation, use the SFT stage to evaluate models.")
 
-    if finetuning_args.stage == "ppo" and model_args.shift_attn:
-        raise ValueError("PPO training is incompatible with S^2-Attn.")
+        if model_args.shift_attn:
+            raise ValueError("PPO training is incompatible with S^2-Attn.")
 
-    if finetuning_args.stage == "ppo" and finetuning_args.reward_model_type == "lora" and model_args.use_unsloth:
-        raise ValueError("Unsloth does not support lora reward model.")
+        if finetuning_args.reward_model_type == "lora" and model_args.use_unsloth:
+            raise ValueError("Unsloth does not support lora reward model.")
 
-    if (
-        finetuning_args.stage == "ppo"
-        and training_args.report_to
-        and training_args.report_to[0] not in ["wandb", "tensorboard"]
-    ):
-        raise ValueError("PPO only accepts wandb or tensorboard logger.")
+        if training_args.report_to and training_args.report_to[0] not in ["wandb", "tensorboard"]:
+            raise ValueError("PPO only accepts wandb or tensorboard logger.")
 
     if training_args.parallel_mode == ParallelMode.NOT_DISTRIBUTED:
         raise ValueError("Please launch distributed training with `llamafactory-cli` or `torchrun`.")
@@ -218,7 +222,7 @@ def get_train_args(args: Optional[Dict[str, Any]] = None) -> _TRAIN_CLS:
         raise ValueError("Cannot use device map for quantized models in training.")
 
     if finetuning_args.pissa_init and is_deepspeed_zero3_enabled():
-        raise ValueError("PiSSA is incompatible with DeepSpeed ZeRO-3.")
+        raise ValueError("Please use scripts/pissa_init.py to initialize PiSSA in DeepSpeed ZeRO-3.")
 
     if finetuning_args.pure_bf16:
         if not is_torch_bf16_gpu_available():
